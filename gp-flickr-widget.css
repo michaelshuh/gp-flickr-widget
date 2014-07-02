@@ -1,0 +1,24 @@
+#gp-flickr-widget {
+    margin-bottom: 30px;
+}
+
+#gp-flickr-widget img {
+    margin-bottom: 5px;
+    width: 80px;
+    opacity: 0.6;
+    filter: alpha(opacity=60);
+    -webkit-transition: all 0.3s ease-out;
+       -moz-transition: all 0.3s ease-out;
+        -ms-transition: all 0.3s ease-out;
+         -o-transition: all 0.3s ease-out;
+            transition: all 0.3s ease-out;
+}
+
+#gp-flickr-widget img:hover {
+    opacity: 1;
+    filter: alpha(opacity=100);
+}
+
+#gp-flickr-widget .odd {
+    margin-right: 10px;
+}
