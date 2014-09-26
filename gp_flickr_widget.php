@@ -33,8 +33,8 @@ function gp_flickr_widget_init() {
         $search_array = array("user_id"=>$user_id, "tags"=>$tags, "tag_mode"=>"all", "per_page" => $num_photos);
         $photos_array = $phpFlickr->photos_search($search_array);
         
-
-        echo "<h3>".$title."</h3>";
+        echo $before_widget;
+        echo $before_title . $title . $after_title;
         echo "<div id='gp-flickr-widget'>";
         $photos = $photos_array['photo'];
         foreach ( $photos as $photo ) {
@@ -46,6 +46,7 @@ function gp_flickr_widget_init() {
             echo "</a>";
         }
         echo "</div>";
+        echo $after_widget;
 
 	}
 	
