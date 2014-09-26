@@ -4,7 +4,6 @@
 
 #gp-flickr-widget img {
     margin-bottom: 5px;
-    width: 80px;
     opacity: 0.6;
     filter: alpha(opacity=60);
     -webkit-transition: all 0.3s ease-out;
@@ -17,8 +16,4 @@
 #gp-flickr-widget img:hover {
     opacity: 1;
     filter: alpha(opacity=100);
-}
-
-#gp-flickr-widget .odd {
-    margin-right: 10px;
 }

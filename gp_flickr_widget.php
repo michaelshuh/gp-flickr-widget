@@ -15,11 +15,12 @@ function gp_flickr_widget_init() {
 		// These are our own options
 		$settings_options = get_option('gp-flickr-widget-settings');
 		$api_key = $settings_options['api_key'];
+		$secret = $settings_options['secret'];
 		$user_id = $settings_options['user_id'];
 		
 		$widget_options = get_option('gp-flickr-widget-options');
-		$collection = $widget_options['collection'];
-		$show_months = $widget_options['show_months'];
+		$title = $widget_options['title'];
+		$tags = $widget_options['tags'];
 		$num_photos = $widget_options['num_photos'];
 	
         // Output
@@ -27,58 +28,36 @@ function gp_flickr_widget_init() {
 		// start
 		require('phpFlickr/phpFlickr.php');
 
-        $phpFlickr = new phpFlickr($api_key);
+        $phpFlickr = new phpFlickr($api_key, $secret);
         
-        $show_months = -1 * $show_months;
-        $searchDate = new DateTime( "now" );       
-        $searchDate->modify( $show_months . ' months' );
-        $searchDate = $searchDate->format('U');
+        $search_array = array("user_id"=>$user_id, "tags"=>$tags, "tag_mode"=>"all", "per_page" => $num_photos);
+        $photos_array = $phpFlickr->photos_search($search_array);
         
-        $collections = $phpFlickr->collections_getTree($collection, $user_id);
-        $sets = $collections['collections']['collection'][0]['set'];
-        $numSets = count( $sets );
-        
-        $count = 0;
-        $myPhotos = array();
-        while ( $count < $num_photos ) {
-            $set_number = rand( 1, $numSets );
-            $set_number--;
-            $set = $sets[$set_number];
-            $setID = $set['id'];
-            
-            $setInfo = $phpFlickr->photosets_getInfo( $set['id'] );
 
-            if ( $setInfo['date_create'] < $searchDate ) {
-               continue;
-            }
-            
-            $num_photos_in_set = $setInfo['count_photos'];
-            $photo_id = rand( 0, $num_photos_in_set - 1 );
-
-            $photos = $phpFlickr->photosets_getPhotos( $setID, "url_sq,owner_name" );
-            $photos = $photos['photoset']['photo'];
-
-            array_push( $myPhotos, $photos[$photo_id] );
-            $count++;
-        }
-
-        echo "<h3>Photos</h3>";
+        echo "<h3>".$title."</h3>";
         echo "<div id='gp-flickr-widget'>";
-        $photo_num = 0;
-        foreach ( $myPhotos as $photo ) {
-            $link_url = "http://www.flickr.com/photos/" . $photo['ownername'] . "/" . $photo['id'] . "/";
-            $photo_url = $photo['url_sq'];
+        $photos = $photos_array['photo'];
+        foreach ( $photos as $photo ) {
+
+            $photo_url = flickr_photo_to_image_url($photo);
+            $link_url = flickr_photo_to_link_url($photo, $user_id);
             echo "<a href=$link_url target='_blank'>";
-            if ($photo_num % 2 == 0) {
-                echo "<img class='odd' src=$photo_url />";
-            } else {
-                echo "<img src=$photo_url />";
-            }
+            echo "<img src=$photo_url />";
             echo "</a>";
-            $photo_num++;
         }
         echo "</div>";
 
+	}
+	
+	function flickr_photo_to_image_url($photo) {
+	    $size = "n";
+	    $photo_url = "https://farm" . $photo['farm'] . ".staticflickr.com/" . $photo['server'] . "/" . $photo['id'] . "_" . $photo['secret'] . "_" . $size . ".jpg";
+	    return $photo_url;
+	}
+	
+	function flickr_photo_to_link_url($photo, $user_id) {
+	    $link_url = "https://www.flickr.com/photos/" . $user_id . "/" . $photo['id'];
+	    return $link_url;
 	}
 
 	// Settings form
@@ -91,27 +70,27 @@ function gp_flickr_widget_init() {
 		if ( isset($_POST['gp-flickr-widget-submit']) && $_POST['gp-flickr-widget-submit'] ) {
 
 			// Remember to sanitize and format use input appropriately.
-			$widget_options['collection'] = $_POST['gp-flickr-widget-options-collection'];
-			$widget_options['show_months'] = $_POST['gp-flickr-widget-options-show_months'];
+			$widget_options['tags'] = $_POST['gp-flickr-widget-options-tags'];
 			$widget_options['num_photos'] = $_POST['gp-flickr-widget-options-num_photos'];
+			$widget_options['title'] = $_POST['gp-flickr-widget-options-title'];
 			update_option('gp-flickr-widget-options', $widget_options);
 		}
 
 		// Get options for form fields to show
-		$collection = $widget_options['collection'];
-		$show_months = $widget_options['show_months'];
+		$title = $widget_options['title'];
+		$tags = $widget_options['tags'];
 		$num_photos = $widget_options['num_photos'];
 
 		// The form fields
 
-		echo '<p style="text-align:right;">
-				<label for="gp-flickr-widget-options-collection">' . __('Collection:') . '
-				<input style="width: 200px;" id="gcal-flickr-widget-options-collection" name="gp-flickr-widget-options-collection" type="text" value="'.$collection.'" />
+        echo '<p style="text-align:right;">
+				<label for="gp-flickr-widget-options-title">' . __('Title:') . '
+				<input style="width: 200px;" id="gcal-flickr-widget-options-title" name="gp-flickr-widget-options-title" type="text" value="'.$title.'" />
 				</label></p>';
-		
+        
 		echo '<p style="text-align:right;">
-				<label for="gp-flickr-widget-options-show_months">' . __('Number of Months:') . '
-				<input style="width: 200px;" id="gcal-flickr-widget-options-show_months" name="gp-flickr-widget-options-show_months" type="text" value="'.$show_months.'" />
+				<label for="gp-flickr-widget-options-collection">' . __('Tags:') . '
+				<input style="width: 200px;" id="gcal-flickr-widget-options-tags" name="gp-flickr-widget-options-tags" type="text" value="'.$tags.'" />
 				</label></p>';
 				
 		echo '<p style="text-align:right;">
@@ -126,18 +105,18 @@ function gp_flickr_widget_init() {
 	// Register widget for use
 
 	wp_register_sidebar_widget(
-		'gp_flickr_widget',        // your unique widget id
+		'gp_flickr_widget',         // your unique widget id
 		'Gracepoint Flickr Widget', // widget name
-		'gp_flickr_widget',  // callback function
-		array(                  // options
+		'gp_flickr_widget',         // callback function
+		array(                      // options
 			'description' => 'Gracepoint Calendar widget'
-		     )
+        )
 	); 
 	
 	wp_register_widget_control(
-		'gp_flickr_widget', // your unique widget id
+		'gp_flickr_widget',         // your unique widget id
 		'Gracepoint Flickr Widget', // widget name
-		'gp_flickr_widget_control',// Callback function
+		'gp_flickr_widget_control', // Callback function
 		300,200
 	);
 	wp_register_style('gp_flickr_widget', WP_PLUGIN_URL . '/gp-flickr-widget/gp-flickr-widget.css');

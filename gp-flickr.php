@@ -1,6 +1,10 @@
 <?php
 /*
 Plugin Name: Gracepoint Flickr Widget
+Plugin URI: https://github.com/michaelshuh/gp-flickr-widget
+Version: 2.0
+Author: Michael Shuh
+Description: A simple flickr widget that will pull photos by tags
 
 /* License
 
@@ -32,9 +36,11 @@ function gp_flickr_settings_page() {
 	if (isset($_POST['info_update'])) {  
 		$gp_flickr_widget_api_key = $_POST['gp-flickr-widget-api_key'];
 		$gp_flickr_widget_user_id = $_POST['gp-flickr-widget-user_id'];
+		$gp_flickr_widget_secret = $_POST['gp-flickr-widget-secret'];
 
         $gp_flickr_widget_options['api_key'] = $gp_flickr_widget_api_key;
         $gp_flickr_widget_options['user_id'] = $gp_flickr_widget_user_id;
+        $gp_flickr_widget_options['secret'] = $gp_flickr_widget_secret;
         
 		update_option( 'gp-flickr-widget-settings', $gp_flickr_widget_options );
 	} 
@@ -51,6 +57,11 @@ function gp_flickr_settings_page() {
 				<tr valign="top">
 					<th scope="row">Flickr API Key</th>
 					<td><input type="text" name="gp-flickr-widget-api_key" value="<?php echo $gp_flickr_widget_options['api_key'];?>"></td>
+				</tr>
+				
+				<tr valign="top">
+					<th scope="row">Flickr Secret</th>
+					<td><input type="text" name="gp-flickr-widget-secret" value="<?php echo $gp_flickr_widget_options['secret'];?>"></td>
 				</tr>
 				
 				<tr valign="top">
@@ -91,6 +102,6 @@ function gp_flickr_widget_settings_link($links, $file) {
 // Run code and init
 add_filter('plugin_action_links', 'gp_flickr_widget_settings_link', 10, 2);
 add_action('admin_menu', 'gp_flickr_add_settings_page');
-add_action( 'admin_init', 'gp_flickr_register_mysettings' );
+add_action('admin_init', 'gp_flickr_register_mysettings' );
 
 ?>
